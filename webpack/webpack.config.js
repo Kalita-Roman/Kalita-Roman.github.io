@@ -3,7 +3,7 @@ import path from 'path';
 import CleanWebpackPlugin from 'clean-webpack-plugin';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
 
-const port = 80;
+const port = 8000;
 const host = 'localhost';
 const location = 'http://' + host + ':' + port;
 const entryPoiny = './index.js';
