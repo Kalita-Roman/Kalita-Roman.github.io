@@ -1,32 +1,16 @@
 import webpack from 'webpack';
 import path from 'path';
 import CleanWebpackPlugin from 'clean-webpack-plugin';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 const port = 8000;
 const host = 'localhost';
 const location = 'http://' + host + ':' + port;
 const entryPoiny = './index.js';
-const PROD_BUNDLE_DIR_NAME = 'bundle';
-const DEV_BUNDLE_DIR_NAME = 'dev';
 const IS_DEV = process.env.NODE_ENV === 'development';
 const IS_PROD = !IS_DEV;
-const dist = IS_DEV ? DEV_BUNDLE_DIR_NAME : PROD_BUNDLE_DIR_NAME;
+const dist = 'bundle';
 const publicPath = '/' + dist;
-
-const loaders = [
-    {
-        loader: 'css-loader',
-        options: { minimize: IS_PROD },
-    },
-    'sass-loader',
-    {
-        loader: 'sass-resources-loader',
-        options: {
-            resources: path.join('style', '_constants.scss'),
-        },
-    },
-];
 
 const commonPlugins = [
     new webpack.DefinePlugin({
@@ -42,15 +26,8 @@ const envPlugins = IS_DEV
         new webpack.NamedModulesPlugin(),
     ]
     : [
-        new CleanWebpackPlugin(PROD_BUNDLE_DIR_NAME, { dry: false, root: path.join(__dirname, '..') }),
-        new ExtractTextPlugin('bundle.css'),
+        new CleanWebpackPlugin(dist, { dry: false, root: path.join(__dirname, '..') }),
         new webpack.NamedModulesPlugin(),
-        new webpack.optimize.UglifyJsPlugin({
-            minimize: true,
-            compress: {
-                warnings: false,
-            },
-        }),
     ];
 
 const config = {
@@ -71,13 +48,23 @@ const config = {
         publicPath,
     },
 
+    mode: IS_DEV ? 'development' : 'production',
+
+    optimization: {
+        minimize: IS_PROD
+    },
+
     resolve: {
         modules: ['node_modules', './'],
     },
 
     devtool: IS_DEV ? 'inline-source-map' : false,
 
-    plugins: [...commonPlugins, ...envPlugins],
+    plugins: [...commonPlugins, ...envPlugins,
+        new MiniCssExtractPlugin({
+            filename: 'bundle.css',
+        })
+    ],
 
     module: {
         rules: [
@@ -87,13 +74,22 @@ const config = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.scss$/,
-                use: IS_PROD
-                    ? ExtractTextPlugin.extract({
-                        fallback: 'style-loader',
-                        use: loaders,
-                    })
-                    : ['style-loader'].concat(loaders),
+                test: /\.(css|scss)$/,
+                use: [
+                    IS_DEV && 'css-hot-loader',
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: { minimize: IS_PROD },
+                    },
+                    'sass-loader',
+                    {
+                        loader: 'sass-resources-loader',
+                        options: {
+                            resources: path.join('style', '_constants.scss'),
+                        },
+                    },
+                ].filter(x => x),
             },
         ],
     },
@@ -104,17 +100,6 @@ const devServer = {
     port,
     publicPath,
     historyApiFallback: true,
-    proxy: {
-        ['/' + PROD_BUNDLE_DIR_NAME]: {
-            target: location,
-            pathRewrite: { ['^/' + PROD_BUNDLE_DIR_NAME + '/']: '/' + DEV_BUNDLE_DIR_NAME + '/' },
-            bypass: (req, res) => {
-                if (req.url === '/' + DEV_BUNDLE_DIR_NAME + '/bundle.css') {
-                    return res.sendStatus(200);
-                }
-            },
-        },
-    },
 };
 
 if (IS_DEV) {
