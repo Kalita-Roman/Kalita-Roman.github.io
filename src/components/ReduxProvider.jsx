@@ -4,7 +4,10 @@ import { createStore, applyMiddleware, compose } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import reducers from '../reducers';
 
-const store = createStore(reducers, (window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose)(applyMiddleware(thunkMiddleware)));
+const composeMiddlewares = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const middlewares = composeMiddlewares(applyMiddleware(thunkMiddleware))
+
+const store = createStore(reducers, middlewares);
 
 export default function ReduxProvider({ children }) {
     return <Provider store={store}>
