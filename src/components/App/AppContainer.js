@@ -1,9 +1,9 @@
 import { connect } from 'react-redux';
 import App from './App.jsx';
-import { fetchInitialData } from '../../actions/app';
+import { fetchSession } from '../../actions/session';
 
 const mapDispatchToProps = {
-  fetchInitialData
+  fetchSession
 }
 
 export default connect(null, mapDispatchToProps)(App);
