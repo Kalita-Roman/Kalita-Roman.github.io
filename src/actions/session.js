@@ -11,7 +11,7 @@ export function fetchSession() {
       apiId: 5675624
     })
     const { user: { id }, expire, secret, sig, sid } = session.session
-    const res = await fetch('http://localhost:8080/permissions', {
+    const res = await fetch('https://api-roman.herokuapp.com/permissions', {
       headers: {
         "Content-Type": "application/json",
         "vk-id": id,
