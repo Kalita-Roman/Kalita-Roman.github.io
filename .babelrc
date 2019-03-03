@@ -1,8 +1,8 @@
 {
   "presets": [
-    "es2015",
+    "env",
+    "stage-0",
     "react",
-    "stage-0"
   ],
   "plugins": [
     "module-resolver",
